@@ -2,7 +2,7 @@
 
 //Defino la cantidad de estados: M= fin/(2.fout)
 //Suponiendo que quiero hasta 1MHz, M= 48MHz/(2.1MHz) = 24 estados
-//Luego calculo la cantidad de flipflops: log base 2 de (24) = 4.53 = 5 flip flops
+//Luego calculo la cantidad de flipflops: log base 2 de (24) = 4.53 = 5 flip flops (1 flip flip = 1bit)
 
 module #(
         //Las frecuencias definidas
@@ -25,6 +25,7 @@ module #(
         parameter BIT_TICK_ANTIREBOTE  = (M_ANTI_REBOTE > 1) ? $clog2(M_ANTI_REBOTE) : 1
 
 )(
+    input wire rst
     output wire contador_interno
     output wire contador_externo
     output wire contador_tick_barrido
@@ -53,8 +54,8 @@ generate
     end
     else if (CLK_INT < INPUT_HFOSC) begin
 
-        always @(negedge HFOSC, ) begin
-
+        always @(negedge HFOSC or negedge rst) begin
+                contador_interno 
 
 
         end
