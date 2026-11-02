@@ -17,8 +17,8 @@ module top (
     //define el wire del clock, y concateno/incluyo el archivo donde esta el modulo del clock
     //por un tema de prolijidad prefiero hacerlo asi, tipo un main y varios archivos con sus modulos.
     
-    wire clk_intern;
-    wire clk_externo;
+    wire tick_enable_interno;
+    wire tick_enable_externo;
     wire tick_barrido;
     wire tick_anti_rebote;
 
@@ -26,8 +26,8 @@ module top (
     //Instancio el modulo del clock y le asigno sus salidas a las variables wire de antes
     //es tipo el include de prototipo de estructuras con sus campos.
 
-    clock u_clock (
-        .clk_48mhz(clk_intern)
+    ticks u_ticks (
+        .tick_enable_interno(tick_enable_interno)
     );
 
 

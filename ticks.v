@@ -8,10 +8,10 @@ un PLL pues esta el problema del jitter para el contador que solo cuenta enteros
 */
 
 
-module clock (
+module ticks (
 
-    output wire clk_interno
-    output wire clk_externo
+    output wire tick_enable_interno
+    output wire tick_enable_externo
     output wire tick_barrido;
     output wire tick_anti_rebote;
 

@@ -26,22 +26,12 @@ module #(
 
 )(
     input wire rst
+    input wire HFOSC
     output wire contador_interno
     output wire contador_externo
     output wire contador_tick_barrido
     output wire contador_tick_anti_rebote
 )
-
-//Instancio el generador 
-SB_HFOSC u_SB_HFOSC (
-        .CLKHFPU (1'b1),    //es el prendido del oscilador
-        .CLKHFEN (1'b1),    //es el enable
-        .CLKHF   (HFOSC), //conecto el oscilador a mi señal interna del modulo
-        .TRIM0(), .TRIM1(), .TRIM2(), .TRIM3(), .TRIM4(),
-        .TRIM5(), .TRIM6(), .TRIM7(), .TRIM8(), .TRIM9()
-    );
-
-wire HFOSC;
 reg [BIT_INTERNO-1 : 0] contador_interno;
 reg [BIT_EXTERNO-1 : 0] contador_externo;
 reg [BIT_TICK_BARRIDO-1 : 0] contador_barrido;
