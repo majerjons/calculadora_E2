@@ -1,5 +1,58 @@
 //Autor: Solar Grillo, Lucas (LSG).
 
+//Al final de todo hay un prototipo inicial.
+
+module contador #(
+  // Los que define el usuario al instanciar
+  parameter F_IN     = 48_000_000,  // Hz, frecuencia del clk que entra
+  parameter F_OUT    = 1_000,       // Hz, frecuencia de la salida
+  parameter CUADRADA = 0,           // 0 = tick (1 pulso por período), 1 = onda cuadrada
+
+  // Derivados (no se tocan al instanciar)
+  parameter M     = CUADRADA ? F_IN / (2 * F_OUT) : F_IN / F_OUT,
+  parameter WIDTH = (M > 1) ? $clog2(M) : 1
+)(
+  input  wire             HFOSC,
+  input  wire             rst,    // reset global síncrono
+  input  wire             clear,  // reinicio a 0 (acá entra la salida del comparador)
+  input  wire             en,     // habilita la cuenta
+  output reg [WIDTH-1:0]  count
+);
+  always @(posedge HFOSC)
+    if (rst | clear) count <= 0;
+    else if (en)     count <= count + 1'b1;
+endmodule
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 //Defino la cantidad de estados: M= fin/(2.fout)
 //Suponiendo que quiero hasta 1MHz, M= 48MHz/(2.1MHz) = 24 estados
 //Luego calculo la cantidad de flipflops: log base 2 de (24) = 4.53 = 5 flip flops (1 flip flip = 1bit)
@@ -58,3 +111,5 @@ endgenerate
 
 
 endmodule
+
+*/
