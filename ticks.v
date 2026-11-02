@@ -10,6 +10,7 @@ un PLL pues esta el problema del jitter para el contador que solo cuenta enteros
 
 module ticks (
 
+    input wire HFOSC
     output wire tick_enable_interno
     output wire tick_enable_externo
     output wire tick_barrido;
