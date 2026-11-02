@@ -18,10 +18,15 @@ module top (
     //por un tema de prolijidad prefiero hacerlo asi, tipo un main y varios archivos con sus modulos.
     
     wire clk_intern;
+    wire clk_externo;
+    wire tick_barrido;
+    wire tick_anti_rebote;
 
 
-    // Submódulo del clock
-    internal_osc u_osc (
+    //Instancio el modulo del clock y le asigno sus salidas a las variables wire de antes
+    //es tipo el include de prototipo de estructuras con sus campos.
+
+    clock u_clock (
         .clk_48mhz(clk_intern)
     );
 
