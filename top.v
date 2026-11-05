@@ -49,4 +49,12 @@ module top (
         .tick_anti_rebote    (tick_anti_rebote)
     );
 
+    //recorrido del teclado
+    recorrer_teclado u_recorrer (
+        .clk          (HFOSC),                                     // Reloj principal a 48 MHz
+        .rst          (rst),                                       // Reset conectado a tu wire rst
+        .tick_barrido (tick_barrido),                              // Enable a 1 KHz
+        .ring_counter ({gpio_44, gpio_4, gpio_3, gpio_48})         // Conexión directa del bus [3:0] a los pines
+    );
+
 endmodule

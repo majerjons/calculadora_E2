@@ -1,4 +1,5 @@
-module ring_counter_hardcodeado (
+module recorrer_teclado (
+    input wire HFOSC
     input wire tick_barrido,
     input wire rst,
     input wire gpio_48,
@@ -11,11 +12,11 @@ module ring_counter_hardcodeado (
     assign gpio_4 = ring_counter[0];
     assign gpio_3 = ring_counter[0];
     assign gpio_48 = ring_counter[0];
-    always @(posedge tick_barrido or posedge rst) begin
+    always @(posedge HFOSC or posedge rst) begin
         if (rst) begin
             // Estado inicial obligatorio: el primer flip-flop en 0, el resto en 1
             ring_counter <= 4'b1110; 
-        end else begin
+        end else if(tick_barrido) begin
             // Conexión en serie, salida de un ff a la entrada de otro
             ring_counter[1] <= ring_counter[0]; // El bit 0 pasa al bit 1
             ring_counter[2] <= ring_counter[1]; // El bit 1 pasa al bit 2
