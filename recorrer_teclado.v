@@ -1,12 +1,12 @@
 module recorrer_teclado (
-    input wire HFOSC
+    input wire HFOSC,
     input wire tick_barrido,
     input wire rst,
     input wire gpio_48,
     input wire gpio_3,
     input wire gpio_4,
     input wire gpio_44,
-    output reg [3:0] ring_counter;
+    output reg [3:0] ring_counter
 );
     assign gpio_44 = ring_counter[0];
     assign gpio_4 = ring_counter[0];

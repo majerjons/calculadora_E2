@@ -7,7 +7,7 @@ module top (
     input  wire gpio_46,
     input  wire gpio_47,
     input  wire gpio_45,
-    input wire rst,
+    input wire boton_rst,
 
     //salidas del teclado para el ringcounter (el recorrido)
     output wire gpio_48,
@@ -26,14 +26,14 @@ module top (
     reg [1:0] btn_sync;
     always @(posedge HFOSC)
         btn_sync <= {btn_sync[0], rst_btn};
-    wire btn_rst = btn_sync[1];
+    wire boton_rst = btn_sync[1];
 
     //Luego esta la logica del contador de ciclos del clk, la idea es dejarlo 8 ciclos de clk el reset activo
     //desde que se lo presiono.
     reg [3:0] rst_cnt;
     reg       rst;
     always @(posedge HFOSC) begin
-        if (btn_rst) begin                  // boton apretado: reinicio la secuencia
+        if (boton_rst) begin                  // boton apretado: reinicio la secuencia
             rst_cnt <= 4'd0;
             rst     <= 1'b1;
         end
@@ -78,7 +78,7 @@ module top (
 
     //recorrido del teclado
     recorrer_teclado u_recorrer (
-        .clk          (HFOSC),                                     // Reloj principal a 48 MHz
+        .HFOSC          (HFOSC),                                     // Reloj principal a 48 MHz
         .rst          (rst),                                       // Reset conectado al reg rst
         .tick_barrido (tick_barrido),                              // Enable a 1 KHz
         .ring_counter ({gpio_44, gpio_4, gpio_3, gpio_48})         // Conexión directa del bus [3:0] a los pines
