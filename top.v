@@ -1,3 +1,5 @@
+//Autores: Solar Grillo, Lucas. LSG
+
 module top (
     //Pines
     //entradas del teclado (su pull-up se configuro en el archivo de constrains)(logica invertida en el barrido!)
@@ -16,9 +18,32 @@ module top (
 
     //variables globales; el clock de 48MHz y el rst
     wire HFOSC;
+    reg [1:0] btn_sync;
 
+    //Logica del rst para comenzar el sistema (lo hice con initialize y eso esta mal, funca en pocas fpgas)
+    
+    //Lo primero es sincronizar la entrada del rst para evitar la metaestabilidad (lo que vimos de siempre)
+    reg [1:0] btn_sync;
+    always @(posedge HFOSC)
+        btn_sync <= {btn_sync[0], rst_btn};
+    wire btn_rst = btn_sync[1];
+
+    //Luego esta la logica del contador de ciclos del clk, la idea es dejarlo 8 ciclos de clk el reset activo
+    //desde que se lo presiono.
+    reg [3:0] rst_cnt;
+    reg       rst;
     always @(posedge HFOSC) begin
-        
+        if (btn_rst) begin                  // boton apretado: reinicio la secuencia
+            rst_cnt <= 4'd0;
+            rst     <= 1'b1;
+        end
+        else if (rst_cnt != 4'd8) begin     // contando los ciclos de reset
+            rst_cnt <= rst_cnt + 1'b1;
+            rst     <= 1'b1;
+        end
+        else begin                          // termino: libero el reset
+            rst     <= 1'b0;
+        end
     end
 
     //instancio al oscilador interno, no es un clock, me toca craftearlo
