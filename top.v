@@ -5,6 +5,7 @@ module top (
     input  wire gpio_46,
     input  wire gpio_47,
     input  wire gpio_45,
+    input wire rst,
 
     //salidas del teclado para el ringcounter (el recorrido)
     output wire gpio_48,
@@ -13,8 +14,12 @@ module top (
     output wire gpio_44
 );
 
-    //el wire tiene que estar declarado ANTES de usarlo
+    //variables globales; el clock de 48MHz y el rst
     wire HFOSC;
+
+    always @(posedge HFOSC) begin
+        
+    end
 
     //instancio al oscilador interno, no es un clock, me toca craftearlo
     SB_HFOSC #(
@@ -24,9 +29,6 @@ module top (
         .CLKHFEN (1'b1),    //es el enable
         .CLKHF   (HFOSC)    //conecto el oscilador a mi senial interna del modulo
     );
-
-    //Reset global, por ahora en 0 (los FF de la iCE40 arrancan en 0 al configurar la FPGA)
-    wire rst = 1'b0;
 
     wire tick_enable_interno;   // 48MHz
     wire tick_enable_externo;   // 1KHz
@@ -52,7 +54,7 @@ module top (
     //recorrido del teclado
     recorrer_teclado u_recorrer (
         .clk          (HFOSC),                                     // Reloj principal a 48 MHz
-        .rst          (rst),                                       // Reset conectado a tu wire rst
+        .rst          (rst),                                       // Reset conectado al reg rst
         .tick_barrido (tick_barrido),                              // Enable a 1 KHz
         .ring_counter ({gpio_44, gpio_4, gpio_3, gpio_48})         // Conexión directa del bus [3:0] a los pines
     );

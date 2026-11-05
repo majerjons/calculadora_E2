@@ -51,7 +51,7 @@ set_io -nowarn gpio_13 13
 set_io -nowarn gpio_19 19
 set_io -nowarn gpio_18 18
 set_io -nowarn gpio_11 11
-set_io -nowarn gpio_9 9
+set_io -nowarn rst 9
 set_io -nowarn gpio_6 6
 set_io -nowarn gpio_44 44
 set_io -nowarn gpio_4 4

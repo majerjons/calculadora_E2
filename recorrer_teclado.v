@@ -6,7 +6,7 @@ module recorrer_teclado (
     input wire gpio_3,
     input wire gpio_4,
     input wire gpio_44,
-    output reg [3:0] ring_counter = 4'b1110; //logica negada, lo que recorre es el 0.
+    output reg [3:0] ring_counter;
 );
     assign gpio_44 = ring_counter[0];
     assign gpio_4 = ring_counter[0];
