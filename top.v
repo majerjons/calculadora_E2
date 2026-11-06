@@ -16,24 +16,23 @@ module top (
     output wire gpio_44
 );
 
-    //variables globales; el clock de 48MHz y el rst
+        //variables globales; el clock de 48MHz y el rst
     wire HFOSC;
-    reg [1:0] btn_sync;
 
-    //Logica del rst para comenzar el sistema (lo hice con initialize y eso esta mal, funca en pocas fpgas)
-    
+    //Logica del rst para comenzar el sistema (lo hice con initial y eso esta mal, funca en pocas fpgas)
+
     //Lo primero es sincronizar la entrada del rst para evitar la metaestabilidad (lo que vimos de siempre)
     reg [1:0] btn_sync;
     always @(posedge HFOSC)
-        btn_sync <= {btn_sync[0], rst_btn};
-    wire boton_rst = btn_sync[1];
+        btn_sync <= {btn_sync[0], boton_rst};
+    wire btn_rst = btn_sync[1];
 
     //Luego esta la logica del contador de ciclos del clk, la idea es dejarlo 8 ciclos de clk el reset activo
     //desde que se lo presiono.
     reg [3:0] rst_cnt;
     reg       rst;
     always @(posedge HFOSC) begin
-        if (boton_rst) begin                  // boton apretado: reinicio la secuencia
+        if (btn_rst) begin                  // boton apretado: reinicio la secuencia
             rst_cnt <= 4'd0;
             rst     <= 1'b1;
         end

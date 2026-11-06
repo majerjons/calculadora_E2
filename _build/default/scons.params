@@ -1,4 +1,4 @@
-timestamp: "05205610486"
+timestamp: "05211024187"
 arch: ice40
 fpga_info {
   fpga_id: "ice40up5k-sg48"
@@ -8,11 +8,6 @@ fpga_info {
     type: "up5k"
     package: "sg48"
   }
-}
-verbosity {
-  all: false
-  synth: false
-  pnr: false
 }
 environment {
   platform_id: "windows-amd64"
@@ -28,4 +23,9 @@ apio_env_params {
   env_name: "default"
   board_id: "upduino31"
   top_module: "top"
+}
+target {
+  upload {
+    programmer_cmd: "iceprog -d d:1/2 $SOURCE"
+  }
 }

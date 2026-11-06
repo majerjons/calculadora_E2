@@ -8,9 +8,9 @@ module recorrer_teclado (
     input wire gpio_44,
     output reg [3:0] ring_counter
 );
-    assign gpio_44 = ring_counter[0];
-    assign gpio_4 = ring_counter[0];
-    assign gpio_3 = ring_counter[0];
+    assign gpio_44 = ring_counter[3];
+    assign gpio_4 = ring_counter[2];
+    assign gpio_3 = ring_counter[1];
     assign gpio_48 = ring_counter[0];
     always @(posedge HFOSC or posedge rst) begin
         if (rst) begin
