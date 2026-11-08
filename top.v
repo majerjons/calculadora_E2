@@ -14,10 +14,6 @@ module top (
     output wire gpio_3,
     output wire gpio_4,
     output wire gpio_44,
-
-    //LEDs de la placa para probar el sistema (logica negativa: 0 = prendido)
-    output wire led_red,     // prendido mientras haya alguna tecla apretada (ya sin rebotes)
-    output wire led_green    // cambia de estado cada vez que se aprieta una tecla
 );
 
     //variables globales; el clock de 48MHz y el rst
@@ -88,8 +84,8 @@ module top (
 
     //recorrido del teclado
     recorrer_teclado u_recorrer (
-        .HFOSC        (HFOSC),            // Reloj principal a 48 MHz
-        .rst          (rst),              // Reset conectado al reg rst
+        .HFOSC        (HFOSC),            
+        .rst          (rst),              
         .tick_barrido (tick_barrido),     // Enable a 1 KHz
         .ring_counter (ring_counter)
     );
@@ -155,6 +151,20 @@ module top (
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //Registro de entrada  
+    //ej de como queda: 
+    /*
+    Ejemplo si presiono lso sigueintes numeros en etse orden: 5-2-8-3
+    1. Estado inicial: 
+        // bcd = 16'h0000, cantidad = 3'd0
+     2. Ingresa '5':    
+        // bcd = 16'h0005, cantidad = 3'd1  (Entra por la derecha)
+     3. Ingresa '2':    
+        // bcd = 16'h0052, cantidad = 3'd2  (Desplaza el 5 a decenas)
+     4. Ingresa '8':    
+        // bcd = 16'h0528, cantidad = 3'd3  (Desplaza a centenas)
+     5. Ingresa '3':    
+        // bcd = 16'h5283, cantidad = 3'd4  (Resultado final)
+    */
     wire [15:0] bcd;
     wire [2:0]  cantidad;
 
@@ -168,18 +178,5 @@ module top (
         .bcd      (bcd),
         .cantidad (cantidad)
     );
-
-    //---------------- Testeo con el LED RGB ----------------
-    //Sin esto el sintetizador borra todo el teclado, porque ninguna salida depende de el.
-    wire q_toggle;
-    toggle_ff u_toggle (
-        .HFOSC (HFOSC),
-        .rst   (rst),
-        .en    (|tecla_apretada),     // cualquier tecla que se aprieta
-        .Q     (q_toggle)
-    );
-
-    assign led_red   = ~(|teclas_estables);   // logica negativa: prendido mientras haya una tecla apretada
-    assign led_green = ~q_toggle;             // logica negativa: cambia con cada pulsacion
 
 endmodule
