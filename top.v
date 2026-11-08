@@ -7,16 +7,20 @@ module top (
     input  wire gpio_46,
     input  wire gpio_47,
     input  wire gpio_45,
-    input wire boton_rst,
+    input  wire boton_rst,
 
     //salidas del teclado para el ringcounter (el recorrido)
     output wire gpio_48,
     output wire gpio_3,
     output wire gpio_4,
-    output wire gpio_44
+    output wire gpio_44,
+
+    //LEDs de la placa para probar el sistema (logica negativa: 0 = prendido)
+    output wire led_red,     // prendido mientras haya alguna tecla apretada (ya sin rebotes)
+    output wire led_green    // cambia de estado cada vez que se aprieta una tecla
 );
 
-        //variables globales; el clock de 48MHz y el rst
+    //variables globales; el clock de 48MHz y el rst
     wire HFOSC;
 
     //Logica del rst para comenzar el sistema (lo hice con initial y eso esta mal, funca en pocas fpgas)
@@ -54,6 +58,7 @@ module top (
         .CLKHF   (HFOSC)    //conecto el oscilador a mi senial interna del modulo
     );
 
+    //---------------- Ticks ----------------
     wire tick_enable_interno;   // 48MHz
     wire tick_enable_externo;   // 1KHz
     wire tick_barrido;          // 1KHz
@@ -75,12 +80,66 @@ module top (
         .tick_anti_rebote    (tick_anti_rebote)
     );
 
+    //---------------- Teclado 4x4 ----------------
+    wire [3:0]  ring_counter;       // columnas: ring_counter[0] = gpio_48 ... ring_counter[3] = gpio_44
+    wire [15:0] matriz;             // foto de las 16 teclas (con rebotes)
+    wire [15:0] teclas_estables;    // las 16 teclas ya sin rebotes (1 = apretada)
+    wire [15:0] tecla_apretada;     // pulso de 1 ciclo cuando se aprieta una tecla
+
     //recorrido del teclado
     recorrer_teclado u_recorrer (
-        .HFOSC          (HFOSC),                                     // Reloj principal a 48 MHz
-        .rst          (rst),                                       // Reset conectado al reg rst
-        .tick_barrido (tick_barrido),                              // Enable a 1 KHz
-        .ring_counter ({gpio_44, gpio_4, gpio_3, gpio_48})         // Conexión directa del bus [3:0] a los pines
+        .HFOSC        (HFOSC),            // Reloj principal a 48 MHz
+        .rst          (rst),              // Reset conectado al reg rst
+        .tick_barrido (tick_barrido),     // Enable a 1 KHz
+        .ring_counter (ring_counter)
     );
+
+    //conecto el bus del ring counter a los pines de las columnas
+    assign gpio_48 = ring_counter[0];
+    assign gpio_3  = ring_counter[1];
+    assign gpio_4  = ring_counter[2];
+    assign gpio_44 = ring_counter[3];
+
+    //foto de las teclas: se captura en cada tick_barrido, justo antes de que el ring counter avance.
+    //filas[0] = gpio_2, filas[1] = gpio_46, filas[2] = gpio_47, filas[3] = gpio_45
+    captura_matriz #(.ACTIVO_BAJO(1)) u_captura (
+        .HFOSC   (HFOSC),
+        .rst     (rst),
+        .en      (tick_barrido),
+        .columna (ring_counter),
+        .filas   ({gpio_45, gpio_47, gpio_46, gpio_2}),
+        .matriz  (matriz)
+    );
+
+    //antirrebote: una tecla es "estable" si cambia durante N_MUESTRAS muestras seguidas (a 100Hz, 3 = 20 a 30ms)
+    antirrebote #(.ANCHO(16), .N_MUESTRAS(3)) u_antirrebote (
+        .HFOSC   (HFOSC),
+        .rst     (rst),
+        .en      (tick_anti_rebote),
+        .entrada (matriz),
+        .salida  (teclas_estables)
+    );
+
+    //detector de flanco ascendente: 1 pulso por cada pulsacion, sin importar cuanto la mantenga apretada
+    detector_flanco #(.ANCHO(16), .MODO(0)) u_flanco (
+        .HFOSC (HFOSC),
+        .rst   (rst),
+        .en    (1'b1),
+        .senal (teclas_estables),
+        .pulso (tecla_apretada)
+    );
+
+    //---------------- Testeo con el LED RGB ----------------
+    //Sin esto el sintetizador borra todo el teclado, porque ninguna salida depende de el.
+    wire q_toggle;
+    toggle_ff u_toggle (
+        .HFOSC (HFOSC),
+        .rst   (rst),
+        .en    (|tecla_apretada),     // cualquier tecla que se aprieta
+        .Q     (q_toggle)
+    );
+
+    assign led_red   = ~(|teclas_estables);   // logica negativa: prendido mientras haya una tecla apretada
+    assign led_green = ~q_toggle;             // logica negativa: cambia con cada pulsacion
 
 endmodule
