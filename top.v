@@ -80,7 +80,7 @@ module top (
         .tick_anti_rebote    (tick_anti_rebote)
     );
 
-    //---------------- Teclado 4x4 ----------------
+    //Teclado 4x4
     wire [3:0]  ring_counter;       // columnas: ring_counter[0] = gpio_48 ... ring_counter[3] = gpio_44
     wire [15:0] matriz;             // foto de las 16 teclas (con rebotes)
     wire [15:0] teclas_estables;    // las 16 teclas ya sin rebotes (1 = apretada)
@@ -127,6 +127,46 @@ module top (
         .en    (1'b1),
         .senal (teclas_estables),
         .pulso (tecla_apretada)
+    );
+
+        //Decodificador (me indica la tecla apretada)
+    wire        operador_suma, operador_resta, operador_igual, operador_clear, operador_digito;
+    wire [3:0]  digito;
+
+    decodificador u_decodificador (
+        .HFOSC           (HFOSC),
+        .rst             (rst),
+        .tecla_apretada  (tecla_apretada),     // sale del detector_flanco
+        .operador_suma   (operador_suma),
+        .operador_resta  (operador_resta),
+        .operador_igual  (operador_igual),
+        .operador_clear  (operador_clear),
+        .operador_digito (operador_digito),
+        .digito          (digito)
+    );
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //FSM de control. Las salidas del decodificador dependen de la FSM por eso ya dejo algo estructurado de la misma.
+  
+    wire op1_en = operador_digito;  
+    wire op2_en = 1'b0;
+    wire clear  = operador_clear;   
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    //Registro de entrada  
+    wire [15:0] bcd;
+    wire [2:0]  cantidad;
+
+    registro_entrada u_registro_entrada (
+        .HFOSC    (HFOSC),
+        .rst      (rst),
+        .clear    (clear),
+        .op1_en   (op1_en),
+        .op2_en   (op2_en),
+        .digito   (digito),
+        .bcd      (bcd),
+        .cantidad (cantidad)
     );
 
     //---------------- Testeo con el LED RGB ----------------

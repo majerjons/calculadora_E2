@@ -1,7 +1,7 @@
 //Autor: Solar Grillo, Lucas (LSG).
 
 /*
-Traduce la posicion fisica de la tecla a tecla.
+A partir de la coordenada fisica me indica cual tecla esta presionada. 
 Entrada: tecla_apretada[15:0], pulsos de 1 ciclo (salida del detector_flanco). Bit = 4*columna + fila.
 
           col0  col1  col2  col3
