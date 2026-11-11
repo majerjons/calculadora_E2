@@ -128,6 +128,13 @@ module top (
         //Decodificador (me indica la tecla apretada)
     wire        operador_suma, operador_resta, operador_igual, operador_clear, operador_digito;
     wire [3:0]  digito;
+    /*
+    operador_digito es una flag. En 1 significa que se ingresó un dígito, y ese 1 dura un ciclo de HFOSC
+    operador_suma es una flag. En 1 significa que se ingresó el operador de hacer una suma, y ese 1 dura un ciclo de HFOSC
+    idem los otros operador_algo
+
+    creo que operador_digito está bien implementado, operador_suma y los otros tendría que revisarlos
+    */
 
     decodificador u_decodificador (
         .HFOSC           (HFOSC),
@@ -144,13 +151,27 @@ module top (
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //FSM de control. Las salidas del decodificador dependen de la FSM por eso ya dejo algo estructurado de la misma.
   
-    wire op1_en = operador_digito;  
+    wire op1_en = 1'b0;
     wire op2_en = 1'b0;
-    wire clear  = operador_clear;   
+    wire clear  = operador_clear;
+    /*
+    Más flags
+    
+    La idea es que op1_en está en 1 cuando se ingresó el 1er primer número/operando de la operación y 
+    op2_en cuando ingesó el 2do.
+    
+    Los valores asignados son provisorios
+
+    OJO que operador_suma/resta/igual/clear/digito valen 1 por un ciclo de HFOSC osea los tengo que
+    guardar de alguna forma para usarlos en la FSM por mas tiempo.
+    */
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    //Registro de entrada  
+    //REGISTRO DE ENTRADA
+
+    // se guarda el número que se está tipeando con todos sus dígitos, y luego se pasa al registro general
+
     //ej de como queda: 
     /*
     Ejemplo si presiono lso sigueintes numeros en etse orden: 5-2-8-3
@@ -166,7 +187,7 @@ module top (
         // bcd = 16'h5283, cantidad = 3'd4  (Resultado final)
     */
     wire [15:0] bcd;
-    wire [2:0]  cantidad;
+    wire [2:0]  cantidad; // cantidad de dígitos ingresados
 
     registro_entrada u_registro_entrada (
         .HFOSC    (HFOSC),
@@ -178,5 +199,14 @@ module top (
         .bcd      (bcd),
         .cantidad (cantidad)
     );
+
+
+/*
+variable "estado" (pasarle al control del display)
+opcion 0 --> mostrar operador 1 (el numero completo, con los digitos que tenga)
+opcion 1 --> mostrar operador 2
+opcion 3--> clear (pone en 0 el display)
+opcion 4--> mostrar resultado 
+*/
 
 endmodule

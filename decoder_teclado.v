@@ -38,7 +38,7 @@ module decodificador (
     assign operador_igual = tecla_apretada[15];   // D
     assign operador_clear = tecla_apretada[14];    // C
 
-    //digitos: bit = 4*columna + fila
+    //digitos: bit = 4*columna + fila. Se ponen en 1 durante un ciclo de HFOSC cuando se aprieta la tecla
     wire t1 = tecla_apretada[0];
     wire t4 = tecla_apretada[1];
     wire t7 = tecla_apretada[2];
@@ -70,3 +70,4 @@ module decodificador (
     end
 
 endmodule
+

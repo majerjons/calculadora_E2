@@ -18,10 +18,10 @@ module registro_entrada (
     input  wire        op2_en,
     input  wire [3:0]  digito,
     output reg  [15:0] bcd,
-    output reg  [2:0]  cantidad
+    output reg  [2:0]  cantidad // cantidad de dígitos que llegaron
 );
 
-    wire shift_en = op1_en | op2_en;
+    wire shift_en = op1_en | op2_en; // si entro un dígito shiftea
 
     always @(posedge HFOSC) begin
         if (rst) begin
@@ -29,8 +29,8 @@ module registro_entrada (
             cantidad <= 3'd0;
         end
         else if (clear) begin
-            if (shift_en) begin                 // borrar y desplazar en el mismo flanco
-                bcd      <= {12'h000, digito};
+            if (shift_en) begin                 // si se ingresa borrar y desplazar en el mismo flanco
+                bcd      <= {12'h000, digito}; // se borra y dsp se ingresa
                 cantidad <= 3'd1;
             end
             else begin
