@@ -1,5 +1,3 @@
-//Autores: Solar Grillo, Lucas. LSG
-
 module top (
     //Pines
     //entradas del teclado (su pull-up se configuro en el archivo de constrains)(logica invertida en el barrido!)
@@ -132,8 +130,6 @@ module top (
     operador_digito es una flag. En 1 significa que se ingresó un dígito, y ese 1 dura un ciclo de HFOSC
     operador_suma es una flag. En 1 significa que se ingresó el operador de hacer una suma, y ese 1 dura un ciclo de HFOSC
     idem los otros operador_algo
-
-    creo que operador_digito está bien implementado, operador_suma y los otros tendría que revisarlos
     */
 
     decodificador u_decodificador (

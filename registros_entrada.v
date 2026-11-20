@@ -1,5 +1,3 @@
-//Autor: Solar Grillo, Lucas (LSG).
-
 /*
 Shift register de dígitos BCD. Los dígitos ingresan por la parte menos significativa (derecha) 
 y desplazan los bits previos hacia la izquierda.

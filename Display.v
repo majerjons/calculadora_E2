@@ -18,7 +18,15 @@
 
 
 
-module mux_formato (input clk, input  [15:0]op1, input [15:0]op2, input [15:0]res, input [1:0] estado, input [1:0]cantidad, output wire [15:0]display_word);
+module mux_formato (
+        input clk, 
+        input  [15:0]op1, 
+        input [15:0]op2, 
+        input [15:0]res, 
+        input [1:0] estado, 
+        input [1:0]cantidad, 
+        output wire [15:0]display_word
+);
 
 
 reg [15:0]disp;
