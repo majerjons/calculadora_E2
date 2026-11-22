@@ -1,6 +1,14 @@
 `default_nettype none
 
-// ALU BCD: op_sel = 1 -> suma, op_sel = 0 -> resta
+/* 
+
+ALU BCD
+
+op_sel = 1 ------> suma
+op_sel = 0 ------> resta 
+
+*/
+
 module alu #(
     parameter NUM_DIGITS = 4
 )(

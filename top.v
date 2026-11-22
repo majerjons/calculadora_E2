@@ -126,17 +126,21 @@ module top (
         //Decodificador (me indica la tecla apretada)
     wire        operador_suma, operador_resta, operador_igual, operador_clear, operador_digito;
     wire [3:0]  digito;
+    
     /*
     operador_digito es una flag. En 1 significa que se ingresó un dígito, y ese 1 dura un ciclo de HFOSC
     operador_suma es una flag. En 1 significa que se ingresó el operador de hacer una suma, y ese 1 dura un ciclo de HFOSC
     idem los otros operador_algo
+
+    los defino como wires porque ya están sincronizados con HFOSC, no hace falta que los sincronice
     */
 
     decodificador u_decodificador (
         .HFOSC           (HFOSC),
         .rst             (rst),
         .tecla_apretada  (tecla_apretada),     // sale del detector_flanco
-        .operador_suma   (operador_suma),
+
+        .operador_suma   (operador_suma),      // Obs: operador_suma/resta/igual/clear/digito valen 1 por un ciclo de HFOSC
         .operador_resta  (operador_resta),
         .operador_igual  (operador_igual),
         .operador_clear  (operador_clear),
@@ -144,65 +148,72 @@ module top (
         .digito          (digito)
     );
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //FSM de control. Las salidas del decodificador dependen de la FSM por eso ya dejo algo estructurado de la misma.
-  
-    wire op1_en = 1'b0;
-    wire op2_en = 1'b0;
-    wire clear  = operador_clear;
-    /*
-    Más flags
-    
-    La idea es que op1_en está en 1 cuando se ingresó el 1er primer número/operando de la operación y 
-    op2_en cuando ingesó el 2do.
-    
-    Los valores asignados son provisorios
-
-    OJO que operador_suma/resta/igual/clear/digito valen 1 por un ciclo de HFOSC osea los tengo que
-    guardar de alguna forma para usarlos en la FSM por mas tiempo.
-    */
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
     //REGISTRO DE ENTRADA
 
-    // se guarda el número que se está tipeando con todos sus dígitos, y luego se pasa al registro general
+    wire[15:0] op1;
+    wire[15:0] op2;
+    wire[1:0]  opN;
+    wire operador, en_digito, en_operador; 
+    // wires porque las controlo desde la FSM
+    
+    registrosEntrada u_registrosEntrada (
+        .HFOSC(HFOSC),
+        .en_digito(en_digito),
+        .en_operador(en_operador),
+        .operador_suma(operador_suma),
+        .operador_resta(operador_resta),
+        .operador_digito(operador_digito),
+        .digito(digito),
+        .opN(opN),
 
-    //ej de como queda: 
-    /*
-    Ejemplo si presiono lso sigueintes numeros en etse orden: 5-2-8-3
-    1. Estado inicial: 
-        // bcd = 16'h0000, cantidad = 3'd0
-     2. Ingresa '5':    
-        // bcd = 16'h0005, cantidad = 3'd1  (Entra por la derecha)
-     3. Ingresa '2':    
-        // bcd = 16'h0052, cantidad = 3'd2  (Desplaza el 5 a decenas)
-     4. Ingresa '8':    
-        // bcd = 16'h0528, cantidad = 3'd3  (Desplaza a centenas)
-     5. Ingresa '3':    
-        // bcd = 16'h5283, cantidad = 3'd4  (Resultado final)
-    */
-    wire [15:0] bcd;
-    wire [2:0]  cantidad; // cantidad de dígitos ingresados
-
-    registro_entrada u_registro_entrada (
-        .HFOSC    (HFOSC),
-        .rst      (rst),
-        .clear    (clear),
-        .op1_en   (op1_en),
-        .op2_en   (op2_en),
-        .digito   (digito),
-        .bcd      (bcd),
-        .cantidad (cantidad)
+        .op1(op1),
+        .op2(op2),
+        .operador(operador) 
     );
 
 
-/*
-variable "estado" (pasarle al control del display)
-opcion 0 --> mostrar operador 1 (el numero completo, con los digitos que tenga)
-opcion 1 --> mostrar operador 2
-opcion 3--> clear (pone en 0 el display)
-opcion 4--> mostrar resultado 
-*/
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //FSM de control y ALU
+
+
+    alu u_alu(
+        .op1(op1),
+        .op2(op2),
+        .op_sel(operador),
+    );
+    /*
+    module alu #(
+    parameter NUM_DIGITS = 4
+    )(
+    input  wire [NUM_DIGITS*4-1:0] op1,
+    input  wire [NUM_DIGITS*4-1:0] op2,
+    input  wire                    op_sel,
+    output wire [NUM_DIGITS*4-1:0] result,
+    output wire                    carry_out
+    );
+
+    */
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //DISPLAY
+    transmisor_serie u_transmisor_serie (
+        tick_disp(tick_disp),
+        disp_word(disp_word)
+    );
+    
+    
+    
+    
+    /*
+    module transmisor_serie (
+        input tick_disp, 
+        input [15:0] disp_word, 
+        input input_en, 
+        output reg salida_serie, 
+        output reg output_en
+    );
+    */
 
 endmodule
