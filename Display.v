@@ -51,7 +51,6 @@ cantidad                digitos que se ven              resultado
 
 
 
-
 /********************************************************************
 *********************************************************************
                       Transmisor serie
@@ -63,35 +62,51 @@ cantidad                digitos que se ven              resultado
 //INPUT_EN = 0, el dispositivo no hace nada
 //INPUT_EN = 1, el dispositivo transmite lo que le pasa disp_word
 
+
+
 module transmisor_serie (
+        input clk,
         input reset,
-        input clk_disp,
         input [15:0] disp_word,
         input input_en,
         output reg salida_serie,
-        output reg output_en
+        output reg output_en,
+        output clk_disp
 );
+
+
 
 reg [4:0] count=4'b0000;
 reg run =0 ;
 reg [15:0] disp_word_mem;
+reg flag =0;
+wire tick_disp;
+clock_transmisor cl (.reset(reset), .clk(clk), .clk_disp(clk_disp));
+detec_flanco negedge1 (.clk(clk), .clk_disp(clk_disp), .n_egedge(tick_disp));
 
+always@(negedge clk)begin
 
-always@(negedge clk_disp)begin
+        if (input_en)begin
+        end
 
     if (reset ==1)begin 
         output_en <= 1'b0;
         salida_serie <= 1'b0;
         count <= 0;
         run<=0;
+        flag <=0;
     end
-    else if(input_en||run)begin
+    else if (input_en && !run && !flag) begin // aca me esta 
+        flag =1;
+        disp_word_mem <= disp_word;
+    end
+    else if((flag||run) & tick_disp)begin
         case (count)
-        0: begin salida_serie <= disp_word[15];
+        0: begin salida_serie <= disp_word_mem[15];
                 count <= count + 1; 
                 run <=1;
-                disp_word_mem <= disp_word;
                 output_en <= 1'b1;
+                flag <= 0;
                 end
         1: begin salida_serie <= disp_word_mem[14];
                 count <= count + 1; end
@@ -126,16 +141,11 @@ always@(negedge clk_disp)begin
         16: begin count <=0; output_en <= 0; run<=0;
         end
         default: begin count <= 0;  
-                run<=0;
-                output_en <= 0;
-                              end
-        endcase
-    end
-    else begin
-        output_en <= 1'b0;
-        salida_serie <= 1'b0;
-        count <= 0;
         run<=0;
+        output_en <= 0;
+        salida_serie <= 1'b0;
+        end
+        endcase
     end
 
 end
@@ -193,5 +203,66 @@ endmodule
 
 ////
 
+
+
+/********************************************************************
+*********************************************************************
+                      Clock_transmisor
+*********************************************************************
+*********************************************************************/
+
+
+// Crea un clock de 10khz a partir de un clock de 48Mhz. N = 48Mhz/2.10Khz = 2400
+
+module clock_transmisor (input reset, input clk, output clk_disp);
+
+reg [11:0]cont =0;
+reg clkint =0;
+assign clk_disp = clkint;
+
+always @(negedge clk) begin
+
+        if(reset==1)begin
+        cont <= 0;
+        clkint <=0;
+        end
+        else if (cont == 2399)begin
+        cont <= 0;
+        clkint <=~ clkint;
+        end
+        else begin
+        cont <= cont + 1;
+        end
+end
+
+
+endmodule
+
+
+/********************************************************************
+*********************************************************************
+                      Detector de flancos
+*********************************************************************
+*********************************************************************/
+
+module detec_flanco (input clk, input clk_disp, output n_egedge);
+
+reg var_1 =0;
+reg var_2 =0;
+
+reg result =0;
+assign n_egedge = result;
+
+always @(negedge clk)begin
+
+var_1 <= clk_disp;
+var_2 <= var_1;
+
+result <= (var_1 ^ var_2) & (var_2 == 1);
+
+end
+
+
+endmodule
 
 
