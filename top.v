@@ -53,23 +53,23 @@ module top (
     );
 
     //---------------- Ticks ----------------
-    wire tick_enable_interno;   // 48MHz
-    wire tick_enable_externo;   // 1KHz
+    wire tick_datos_disp;       // 48 MHz --> hacerlo de 1 MHz !!
+    wire tick_refresco_disp;    // 1KHz
     wire tick_barrido;          // 1KHz
     wire tick_anti_rebote;      // 100Hz
 
     //Para cambiar la frecuencia de un tick se modifica el parameter
     ticks #(
         .F_IN            (48_000_000),
-        .F_TICK_INTERNO  (48_000_000),
-        .F_TICK_EXTERNO  (1_000),
+        .F_TICK_DATOS_DISP  (1_000_000), // 1 MHz
+        .F_TICK_REFRESCO_DISP  (1_000), // 1 KHz
         .F_TICK_BARRIDO  (1_000),
         .F_TICK_ANTIREB  (100)
     ) u_ticks (
         .HFOSC               (HFOSC),
         .rst                 (rst),
-        .tick_enable_interno (tick_enable_interno),
-        .tick_enable_externo (tick_enable_externo),
+        .tick_datos_disp (tick_datos_disp),
+        .tick_refresco_disp (tick_refresco_disp),
         .tick_barrido        (tick_barrido),
         .tick_anti_rebote    (tick_anti_rebote)
     );
@@ -149,19 +149,42 @@ module top (
     );
 
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //REGISTRO DE ENTRADA
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //FSM, ALU y registros de entrada
 
-    wire[15:0] op1;
-    wire[15:0] op2;
-    wire[1:0]  opN;
-    wire operador, en_digito, en_operador; 
-    // wires porque las controlo desde la FSM
+    wire[1:0] estado_display, opN, cant_dig_mostrar;
+    wire[15:0] op1, op2, result;
+    wire operador, en_alu, pulso_dato_disp, rst_input_regs;
+
+    fsm u_fsm (
+        .clk(HFOSC),
+        .operador_suma(operador_suma),
+        .operador_resta(operador_resta),
+        .operador_igual(operador_igual),
+        .operador_clear(operador_clear),
+        .operador_digito(operador_digito),
+        .digito(digito),
+
+        .estado_display(estado_display),
+        .cant_dig_mostrar(cant_dig_mostrar),
+        .opN(opN),
+        .operador(operador)
+        .rst_input_regs(rst_input_regs),
+        .pulso_dato_disp(pulso_dato_disp)
+    );
+
+    /*detector_flanco u_detector_opN (
+    .HFOSC(clk),
+    .rst(1'b0),
+    .en(1'b1),
+    .senal(opN),
     
+    .pulso(flanco_opN)
+    ); */
+
     registrosEntrada u_registrosEntrada (
-        .HFOSC(HFOSC),
-        .en_digito(en_digito),
-        .en_operador(en_operador),
+        .clk(HFOSC),
+        .rst_input_regs(rst_input_regs),
         .operador_suma(operador_suma),
         .operador_resta(operador_resta),
         .operador_digito(operador_digito),
@@ -170,50 +193,54 @@ module top (
 
         .op1(op1),
         .op2(op2),
-        .operador(operador) 
+        .operador(operador) //FALTAN SALIDAS!!! AGREGAR
     );
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //FSM de control y ALU
-
-
-    alu u_alu(
+    
+        alu u_alu(
+        .en(en_alu),
         .op1(op1),
         .op2(op2),
         .op_sel(operador),
-    );
-    /*
-    module alu #(
-    parameter NUM_DIGITS = 4
-    )(
-    input  wire [NUM_DIGITS*4-1:0] op1,
-    input  wire [NUM_DIGITS*4-1:0] op2,
-    input  wire                    op_sel,
-    output wire [NUM_DIGITS*4-1:0] result,
-    output wire                    carry_out
+        
+        .result(result),
+        .carry_out();
     );
 
-    */
-
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //DISPLAY
+    wire[15:0] disp_word;
+    wire DataIn_disp, DataEn_disp, tick_datos_disp; // van conectados a la placa!!!
+
+    mux_formato u_mux_disp (
+        .clk(HFOSC),
+        .op1(op1),
+        .op2(op2),
+        .res(result),
+        .estado(estado_display),
+        .cantidad(cant_dig_mostrar),
+
+        .display_word(disp_word),
+    );
+
+
     transmisor_serie u_transmisor_serie (
-        tick_disp(tick_disp),
-        disp_word(disp_word)
+        .tick_disp(tick_datos_disp),
+        .disp_word(disp_word), //controlado por el mux del display
+        .input_en(pulso_dato_disp) // el pulso que mando para mandarle un dato nuevo al display
+        
+        .salida_serie(DataIn_disp),
+        .output_en(DataEn_disp)
     );
-    
-    
-    
-    
+
+
     /*
-    module transmisor_serie (
-        input tick_disp, 
-        input [15:0] disp_word, 
-        input input_en, 
-        output reg salida_serie, 
-        output reg output_en
-    );
+    cables que van a la placa (gpios):
+    - tick_refresco_disp --> clk datos display
+    - DataEn_disp --> en
+    - DataIn_disp --> datos
+    - tick_refresco_disp --> clk refreco display
     */
+
 
 endmodule

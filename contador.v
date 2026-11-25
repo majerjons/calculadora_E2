@@ -24,6 +24,12 @@ module contador #(
 endmodule
 
 
+
+
+
+
+
+
 /*
 //Defino la cantidad de estados: M= fin/(2.fout)
 //Suponiendo que quiero hasta 1MHz, M= 48MHz/(2.1MHz) = 24 estados

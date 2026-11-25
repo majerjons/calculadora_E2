@@ -14,51 +14,43 @@
             Mux_formato
 *********************************************************************
 *********************************************************************/
-// VARIABLES
-
-
-
-module mux_formato (input clk, input  [15:0]op1, input [15:0]op2, input [15:0]res, input [1:0] estado, input [1:0]cantidad, output wire [15:0]display_word);
-
+module mux_formato (
+        input clk,
+        input  [15:0] op1,
+        input [15:0]op2,
+        input [15:0]res,
+        input [1:0] estado,
+        input [1:0]cantidad,
+        output wire [15:0] display_word
+);
 
 reg [15:0]disp;
 
 
-/**
-
-    FLIPEO DE BITS INTERNOS PARA CUMPLIR CON EL FORMATO
-    
-**/
-
-    formateador flip1 (.clk(clk), .a(disp), .num_format(display_word), .cantidad(cantidad));
-
-
-/**
-
-    APAGADO DE LOS BITS NO USADOS
-    
-**/
-
+// FLIPEO DE BITS INTERNOS PARA CUMPLIR CON EL FORMATO
+formateador flip1 (.clk(clk), .a(disp), .num_format(display_word), .cantidad(cantidad));
 
 always @(*) begin //apagar displays no usados
-
-
-//// MUX
-        case(estado) //consultar si estaría bien usar la bloqueante? quiero que esto se actualice en un flanco
-
-        2'b00: disp = op1;
-        2'b01: disp = op2;
-        2'b10: disp = res;
-        default: disp = 16'hFFFF;
-    endcase
-
-/////
-
-
+        case(estado)//MUX
+                2'b00: disp = op1;
+                2'b01: disp = op2;
+                2'b10: disp = res;
+                default: disp = 16'hFFFF;
+        endcase
 end
 
-
 endmodule
+
+/*
+cantidad                digitos que se ven              resultado
+2'b00                   1                               F F F d0
+2'b01                   2                               F F d1 d0
+2'b10                   3                               F d2 d1 d0
+2'b11                   4                               d3 d2 d1 d0
+*/
+
+
+
 
 /********************************************************************
 *********************************************************************
@@ -71,14 +63,21 @@ endmodule
 //INPUT_EN = 0, el dispositivo no hace nada
 //INPUT_EN = 1, el dispositivo transmite lo que le pasa disp_word
 
-module transmisor_serie (input reset, input tick_disp, input [15:0] disp_word, input input_en, output reg salida_serie, output reg output_en);
+module transmisor_serie (
+        input reset,
+        input clk_disp,
+        input [15:0] disp_word,
+        input input_en,
+        output reg salida_serie,
+        output reg output_en
+);
 
 reg [4:0] count=4'b0000;
 reg run =0 ;
 reg [15:0] disp_word_mem;
 
 
-always@(negedge tick_disp)begin
+always@(negedge clk_disp)begin
 
     if (reset ==1)begin 
         output_en <= 1'b0;
@@ -141,7 +140,6 @@ always@(negedge tick_disp)begin
 
 end
 
-
 endmodule
 
 
@@ -162,7 +160,12 @@ endmodule
 *********************************************************************/
 
 
-module formateador (input clk, input wire [15:0]a, input wire [1:0] cantidad, output reg [15:0]num_format);
+module formateador ( 
+        input clk, 
+        input wire [15:0]a,
+        input wire [1:0] cantidad,
+        output reg [15:0]num_format
+);
 
 wire [15:0] num_format_out;
 
@@ -175,34 +178,13 @@ assign num_format_out = {a[12],a[13],a[14],a[15],
                          a[4], a[5], a[6], a[7],
                          a[0], a[1], a[2], a[3]};
 
-always@(negedge clk)begin
+always@(negedge clk) begin  // Llena con ceros los números no usados
+        if (cantidad == 2'b11)   num_format <= num_format_out;
 
-
-// Llena con ceros los números no usados
-
-
- if (cantidad == 2'b11)
-
-    num_format <= num_format_out;
-
-    else if  (cantidad == 2'b00)begin
-    num_format <= { 4'hF, 4'hF, 4'hF, num_format_out[3:0]};
-    end
-    else if (cantidad == 2'b01)begin
-
-    num_format <= { 4'hF, 4'hF, num_format_out[7:0]};
-    end 
-
-    else if (cantidad == 2'b10)begin
-
-    num_format <= { 4'hF, num_format_out[11:0]};
-
-    end
-    else begin
-
-    num_format <= 16'hFFFF;
-    end
-
+                else if  (cantidad == 2'b00) num_format <= { 4'hF, 4'hF, 4'hF, num_format_out[3:0]};
+                else if (cantidad == 2'b01)  num_format <= { 4'hF, 4'hF, num_format_out[7:0]};
+                else if (cantidad == 2'b10)  num_format <= { 4'hF, num_format_out[11:0]};
+                else num_format <= 16'hFFFF;
 end
 
 

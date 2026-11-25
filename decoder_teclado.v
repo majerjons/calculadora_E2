@@ -13,8 +13,12 @@ Entrada: tecla_apretada[15:0], pulsos de 1 ciclo (salida del detector_flanco). B
 Asignacion de operadores
   A = suma, B = resta, D = igual, C = clear. 
 
-Los operadores duran 1 ciclo, a cambio los que son digito se retienen hasta el siguiente digito para que la FSM pueda
-activar op1_en/op2_en un ciclo despues del pulso y el registro de entrada vea bien el valor/digito.
+Los operadores duran 1 ciclo, en cambio "digito" se retiene hasta el siguiente digito para que 
+la FSM pueda activar op1_en/op2_en un ciclo despues del pulso y el registro de entrada vea bien
+el valor/digito.
+
+Cuando se ingresa un nuevo dígito, se manda un pulso por "operador_digito" y "digito" recién toma
+el valor ingresado en el ciclo siguiente al del pulso de "operador_digito"!!
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 Con dos teclas en el mismo ciclo se da prioridad al digito mas bajo. (esto es un parche temporal)

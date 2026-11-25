@@ -7,11 +7,15 @@ ALU BCD
 op_sel = 1 ------> suma
 op_sel = 0 ------> resta 
 
+FALTA IMPLEMENTAR EL ENABLE!!!!!!!! La idea sería que el resultado está apagado (00...0) cuando en=0 y
+está prendido (lo que tenga en la entrada) cuando en=1.
+
 */
 
 module alu #(
     parameter NUM_DIGITS = 4
 )(
+    input  wire                    en, // FALTA IMPLEMENTAR!!!!!!!!!!!!!!!!!!
     input  wire [NUM_DIGITS*4-1:0] op1,
     input  wire [NUM_DIGITS*4-1:0] op2,
     input  wire                    op_sel,
