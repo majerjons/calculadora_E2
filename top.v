@@ -12,6 +12,12 @@ module top (
     output wire gpio_3,
     output wire gpio_4,
     output wire gpio_44,
+
+    // salidas que van a la placa
+    output wire gpio_18,
+    output wire gpio_19,
+    output wire gpio_13,
+    output wire gpio_21
 );
 
     //variables globales; el clock de 48MHz y el rst
@@ -53,7 +59,6 @@ module top (
     );
 
     //---------------- Ticks ----------------
-    wire tick_datos_disp;       // 48 MHz --> hacerlo de 1 MHz !!
     wire tick_refresco_disp;    // 1KHz
     wire tick_barrido;          // 1KHz
     wire tick_anti_rebote;      // 100Hz
@@ -61,14 +66,12 @@ module top (
     //Para cambiar la frecuencia de un tick se modifica el parameter
     ticks #(
         .F_IN            (48_000_000),
-        .F_TICK_DATOS_DISP  (1_000_000), // 1 MHz
         .F_TICK_REFRESCO_DISP  (1_000), // 1 KHz
         .F_TICK_BARRIDO  (1_000),
         .F_TICK_ANTIREB  (100)
     ) u_ticks (
         .HFOSC               (HFOSC),
         .rst                 (rst),
-        .tick_datos_disp (tick_datos_disp),
         .tick_refresco_disp (tick_refresco_disp),
         .tick_barrido        (tick_barrido),
         .tick_anti_rebote    (tick_anti_rebote)
@@ -168,11 +171,11 @@ module top (
         .estado_display(estado_display),
         .cant_dig_mostrar(cant_dig_mostrar),
         .opN(opN),
-        .operador(operador)
+        .operador(operador),
         .rst_input_regs(rst_input_regs),
         .pulso_dato_disp(pulso_dato_disp)
     );
-
+    
     registrosEntrada u_registrosEntrada (
         .clk(HFOSC),
         .rst_input_regs(rst_input_regs),
@@ -181,9 +184,9 @@ module top (
         .opN(opN),
 
         .op1(op1),
-        .op2(op2),
+        .op2(op2)
     );
-    
+
     alu u_alu(
         .en(en_alu),
         .op1(op1),
@@ -191,14 +194,14 @@ module top (
         .op_sel(operador),
         
         .result(result),
-        .carry_out();
+        .carry_out()
     );
 
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //DISPLAY
     wire[15:0] disp_word;
-    wire DataIn_disp, DataEn_disp, tick_datos_disp; // van conectados a la placa!!!
+    wire DataIn_disp, DataEn_disp, DataClk_disp;
 
     mux_formato u_mux_disp (
         .clk(HFOSC),
@@ -208,27 +211,32 @@ module top (
         .estado(estado_display),
         .cantidad(cant_dig_mostrar),
 
-        .display_word(disp_word),
+        .display_word(disp_word)
     );
-
 
     transmisor_serie u_transmisor_serie (
-        .tick_disp(tick_datos_disp),
+        .clk(HFOSC),
+        .reset(),
         .disp_word(disp_word), //controlado por el mux del display
-        .input_en(pulso_dato_disp) // el pulso que mando para mandarle un dato nuevo al display
+        .input_en(pulso_dato_disp), // el pulso que mando para mandarle un dato nuevo al display
         
         .salida_serie(DataIn_disp),
-        .output_en(DataEn_disp)
+        .output_en(DataEn_disp),
+        .clk_disp(DataClk_disp) // 1k Hz
     );
+
+
+    assign gpio_18 = DataClk_disp;
+    assign gpio_19 = DataEn_disp;
+    assign gpio_13 = DataIn_disp;
+    assign gpio_21 = tick_refresco_disp;
 
 
     /*
-    cables que van a la placa (gpios):
-    - tick_refresco_disp --> clk datos display
+    cables que van a la placa (gpios): MODFIICAR
+    - DataClk_disp --> clk datos display
     - DataEn_disp --> en
     - DataIn_disp --> datos
     - tick_refresco_disp --> clk refreco display
     */
-
-
 endmodule

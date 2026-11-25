@@ -16,30 +16,21 @@ F_IN debe ser multiplo entero de F_OUT, sino la division entera hace que la frec
 
 module ticks #(
     parameter F_IN             = 48_000_000,  // Hz, frecuencia del HFOSC
-    parameter F_TICK_DATOS_DISP   = 48_000_000,  // Hz, tick_enable_interno (a 48MHz queda siempre en 1)
     parameter F_TICK_REFRESCO_DISP   = 1_000,       // Hz,
     parameter F_TICK_BARRIDO   = 1_000,       // Hz, tick_barrido (avance del ring counter del teclado)
     parameter F_TICK_ANTIREB   = 100          // Hz, tick_anti_rebote (muestreo del debouncing, 10ms)
 )(
     input  wire HFOSC,
     input  wire rst,
-    output wire tick_datos_disp,
     output wire tick_refresco_disp,
     output wire tick_barrido,
     output wire tick_anti_rebote
 );
 
-    //el tipo de dato tick, asi lo reutilizo.
-    tick_gen #(.F_IN(F_IN), .F_OUT(F_TICK_DATOS_DISP)) u_tick_interno (
-        .HFOSC (HFOSC),
-        .rst   (rst),
-        .tick  (tick_datos_disp)
-    );
-
     tick_gen #(.F_IN(F_IN), .F_OUT(F_TICK_REFRESCO_DISP)) u_tick_externo (
         .HFOSC (HFOSC),
         .rst   (rst),
-        .tick  (F_TICK_REFRESCO_DISP)
+        .tick  (tick_refresco_disp)
     );
 
     tick_gen #(.F_IN(F_IN), .F_OUT(F_TICK_BARRIDO)) u_tick_barrido (

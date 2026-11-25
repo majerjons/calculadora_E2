@@ -103,8 +103,7 @@ module antirebote_tb;
     integer r;
 
     initial begin
-        $dumpfile("antirebote_tb.vcd");
-        $dumpvars(0, antirebote_tb);
+        // saco dumpfile y dumpvars
         repeat (5) @(posedge HFOSC);
         rst = 1'b0;
         tras_muestra;

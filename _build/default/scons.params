@@ -1,4 +1,4 @@
-timestamp: "08193031796"
+timestamp: "25154817632"
 arch: ice40
 fpga_info {
   fpga_id: "ice40up5k-sg48"
@@ -19,10 +19,10 @@ environment {
   is_windows: true
   terminal_mode: FORCE_TERMINAL
   theme_name: "light"
-  yosys_path: "C:\\Users\\lucas\\.apio\\packages\\oss-cad-suite\\share\\yosys"
-  trellis_path: "C:\\Users\\lucas\\.apio\\packages\\oss-cad-suite\\share\\trellis"
+  yosys_path: "C:\\Users\\ritam\\.apio\\packages\\oss-cad-suite\\share\\yosys"
+  trellis_path: "C:\\Users\\ritam\\.apio\\packages\\oss-cad-suite\\share\\trellis"
   scons_shell_id: "cmd"
-  xilinx_prjxray_db_path: "C:\\Users\\lucas\\.apio\\packages\\openxc7\\share\\nextpnr\\external\\prjxray-db"
+  xilinx_prjxray_db_path: "C:\\Users\\ritam\\.apio\\packages\\openxc7\\share\\nextpnr\\external\\prjxray-db"
 }
 apio_env_params {
   env_name: "default"

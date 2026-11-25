@@ -10,9 +10,7 @@
 
 
 /********************************************************************
-*********************************************************************
             Mux_formato
-*********************************************************************
 *********************************************************************/
 module mux_formato (
         input clk,
@@ -52,17 +50,13 @@ cantidad                digitos que se ven              resultado
 
 
 /********************************************************************
-*********************************************************************
                       Transmisor serie
-*********************************************************************
 *********************************************************************/
 
 //OBSERVACIONES  DE USO
 
 //INPUT_EN = 0, el dispositivo no hace nada
 //INPUT_EN = 1, el dispositivo transmite lo que le pasa disp_word
-
-
 
 module transmisor_serie (
         input clk,
@@ -74,8 +68,6 @@ module transmisor_serie (
         output clk_disp
 );
 
-
-
 reg [4:0] count=4'b0000;
 reg run =0 ;
 reg [15:0] disp_word_mem;
@@ -86,8 +78,8 @@ detec_flanco negedge1 (.clk(clk), .clk_disp(clk_disp), .n_egedge(tick_disp));
 
 always@(negedge clk)begin
 
-        if (input_en)begin
-        end
+    if (input_en)begin
+    end
 
     if (reset ==1)begin 
         output_en <= 1'b0;
@@ -164,9 +156,7 @@ endmodule
 
 
 /********************************************************************
-*********************************************************************
-                      FORMATEO
-*********************************************************************
+                      Formateo
 *********************************************************************/
 
 
@@ -206,17 +196,14 @@ endmodule
 
 
 /********************************************************************
-*********************************************************************
                       Clock_transmisor
-*********************************************************************
 *********************************************************************/
 
 
-// Crea un clock de 10khz a partir de un clock de 48Mhz. N = 48Mhz/2.10Khz = 2400
-
+// Crea un clock a partir de un clock de 48Mhz
 module clock_transmisor (input reset, input clk, output clk_disp);
 
-reg [11:0]cont =0;
+reg [14:0]cont =0;
 reg clkint =0;
 assign clk_disp = clkint;
 
@@ -226,7 +213,9 @@ always @(negedge clk) begin
         cont <= 0;
         clkint <=0;
         end
-        else if (cont == 2399)begin
+        else if (cont == 2399)begin  
+        // 2399 --> 10k
+        // 23999 --> 1k
         cont <= 0;
         clkint <=~ clkint;
         end
@@ -240,9 +229,7 @@ endmodule
 
 
 /********************************************************************
-*********************************************************************
                       Detector de flancos
-*********************************************************************
 *********************************************************************/
 
 module detec_flanco (input clk, input clk_disp, output n_egedge);

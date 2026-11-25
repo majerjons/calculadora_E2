@@ -66,10 +66,7 @@ transmisor_serie tx1(
 
 initial begin
 
-    $dumpfile("testbench.vcd");
-    $dumpvars(0,display_tb);
-
-
+    // saco dumpfile y dumpvars
 
     op1 = 16'h1000;
     op2 = 16'h1001;

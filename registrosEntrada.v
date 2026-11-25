@@ -11,7 +11,6 @@ module registrosEntrada(
 
 reg operador_digito_propag = 1'b0;
 
-
 always @(posedge clk) begin
     operador_digito_propag <= operador_digito;
 

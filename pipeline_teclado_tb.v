@@ -218,8 +218,7 @@ module pipeline_teclado_tb;
     endtask
 
     initial begin
-        $dumpfile("pipeline_teclado_tb.vcd");
-        $dumpvars(0, pipeline_teclado_tb);
+        // saco dumpfile y dumpvars
         if (MODO_EN == 1) $display("MODO_EN = 1: FSM provisoria, op1_en = operador_digito retrasado 1 ciclo");
         else              $display("MODO_EN = 0: como el top actual, op1_en = 0. El registro NO debe cargar (solo responde a clear)");
         repeat (5) @(posedge HFOSC);

@@ -17,8 +17,6 @@ module fsm (
     output wire        pulso_dato_disp
 );
 
-// es al pedo ponerle un enable a la ALU no? CHEQUEAR!!!!!!!!!
-
     // Estados
     localparam ESP_OP1                   = 3'b0,
                ESP_OPERADOR              = 3'b1,

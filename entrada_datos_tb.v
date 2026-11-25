@@ -96,8 +96,7 @@ module entrada_datos_tb;
 
     integer antes;
     initial begin
-        $dumpfile("entrada_datos_tb.vcd");
-        $dumpvars(0, entrada_datos_tb);
+        // saco dumpfile y dumpvars
         repeat (5) @(posedge HFOSC);
         rst = 1'b0;
         repeat (50) @(posedge HFOSC);
