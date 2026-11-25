@@ -8,15 +8,16 @@ module fsm (
     input wire         operador_igual,
     input wire         operador_digito,
     input wire[3:0]    digito,
-    
+
     output reg[1:0]    estado_display = 2'b00,
     output reg[1:0]    cant_dig_mostrar = 2'b00,
     output reg[1:0]    opN = 2'b00,  // 01 ingreso op1 - 10 ingreso op2 (para saber en cual guardar el numero) - 00 ninguno (actua como enable!)
-    output wire        operador = 1'b0, // 1 suma - 0 resta
+    output reg         operador = 1'b0, // 1 suma - 0 resta
     output reg         rst_input_regs = 1'b0,
-    output reg         en_alu = 1'b0,
-    output reg         pulso_dato_disp
+    output wire        pulso_dato_disp
 );
+
+// es al pedo ponerle un enable a la ALU no? CHEQUEAR!!!!!!!!!
 
     // Estados
     localparam ESP_OP1                   = 3'b0,
@@ -30,7 +31,7 @@ module fsm (
         no se tome el ingreso de más dígitos.
         */
 
-    reg [2:0] estadoProximo;
+    reg [2:0] estadoProximo = ESP_OP1;
     reg [2:0] estadoActual = ESP_OP1; // inicializo
     reg [2:0] cant_dig = 3'b000; // inicializo
     reg rst_contador_ciclos = 1'b0;
@@ -58,9 +59,13 @@ module fsm (
         end
         
         //si estoy transicionando a ESP_OP2...
-        else if(estadoActual!=estadoProximo && estadoProximo==ESP_OP2) cant_dig <= 3'b0;
+        else if (estadoActual!=estadoProximo && estadoProximo==ESP_OP2) cant_dig <= 3'b0;
 
-        if (operador_igual)  rst_input_regs <= 1'b1;
+
+        if (operador_igual) begin
+            rst_contador_ciclos <= 1'b1;
+            cant_dig <= 3'b100; 
+        end
         else if (operador_suma) operador <= 1'b1; //entre la suma y la resta, priorizo la suma arbitrariamente
         else if (operador_resta) operador <= 1'b0;
 
@@ -68,7 +73,10 @@ module fsm (
 
     /* 
     A continuación algo que escribí para organizar las ideas, no para documentar. 
-    Los operador_x_propag son están definidos en el módulo del registrosEntrada.
+    2 aclaraciones:
+    1) Los operador_x_propag son están definidos en el módulo del registrosEntrada.
+    2) No me interesa actualizar el display después del ingreso del operador, así que no hago un análisis
+    de tiempos del mismo.
 
     ANALISIS DE TIEMPOS DEL RESET:
     1er ciclo --> operador_clear se pone en 1
@@ -85,14 +93,6 @@ module fsm (
     3er ciclo --> recién en este flanco ascendente debería guardar el digito en el registro, si corresponde. el if (operador_digito_propag) se pone en 1 aca
     4to ciclo --> en este flanco ascendente se actualizó el resultado en la entrada de transmisor_serie. Si en este ciclo mando al display el pulso, tomaría el valor anterior del registro, así que no funcaría.
     5to ciclo --> en este ciclo le mandaría el pulso a transmisor_serie
-
-    ***********************
-
-    ANALISIS DE TIEMPOS DE LA TOMA DEL OPERADOR:
-    1er ciclo --> se prende operador_suma/resta
-    2do ciclo --> está guardado el valor ingresado
-    3er ciclo --> se actualizó el resultado en la entrada de transmisor_serie, así que ahora se puede mandar el pulso al display
-    4to ciclo --> en este ciclo le mandaría el pulso a transmisor_serie
 
     ***********************
 
@@ -130,8 +130,6 @@ module fsm (
             ESP_OP2:
                 if (cant_dig==3'b100) estadoProximo = ESP_IGUAL;
             
-            MOSTRAR_RESUL:
-                if(operador_digito) estadoProximo = ESP_OP1;
         endcase
 
         if (operador_clear) estadoProximo = ESP_OP1;
@@ -140,7 +138,7 @@ module fsm (
 
 
     always @(*) begin
-        if((estadoActual==ESP_OP1) || (estadoActual==MOSTRAR_RESUL)) opN = 2'b1; // asi cuando escribo el primer digito de op1 mientras muestro el resultado, se guarda
+        if(estadoActual==ESP_OP1) opN = 2'b1;
         else if (estadoActual == ESP_OP2) opN = 2'b10;
         else opN = 2'b00;
 
@@ -151,7 +149,6 @@ module fsm (
         if(cant_dig) cant_dig_mostrar = cant_dig - 3'b001;
         else cant_dig_mostrar = 3'b000;
     end
-    assign en_alu = (estadoActual==MOSTRAR_RESUL);
 
 endmodule
 
@@ -165,7 +162,7 @@ module pulso_5to_ciclo (
   input  wire rst,
   output wire senal
 );
-    reg [2:0] count;
+    reg [2:0] count = 3'd5; // si lo inicializo en cero me manda un pulso fantasma cuando arranca el programa
 
     always @(posedge clk) begin
         if (rst)    count <= 0;

@@ -160,8 +160,8 @@ module top (
         .clk(HFOSC),
         .operador_suma(operador_suma),
         .operador_resta(operador_resta),
-        .operador_igual(operador_igual),
         .operador_clear(operador_clear),
+        .operador_igual(operador_igual),
         .operador_digito(operador_digito),
         .digito(digito),
 
@@ -173,30 +173,18 @@ module top (
         .pulso_dato_disp(pulso_dato_disp)
     );
 
-    /*detector_flanco u_detector_opN (
-    .HFOSC(clk),
-    .rst(1'b0),
-    .en(1'b1),
-    .senal(opN),
-    
-    .pulso(flanco_opN)
-    ); */
-
     registrosEntrada u_registrosEntrada (
         .clk(HFOSC),
         .rst_input_regs(rst_input_regs),
-        .operador_suma(operador_suma),
-        .operador_resta(operador_resta),
         .operador_digito(operador_digito),
         .digito(digito),
         .opN(opN),
 
         .op1(op1),
         .op2(op2),
-        .operador(operador) //FALTAN SALIDAS!!! AGREGAR
     );
     
-        alu u_alu(
+    alu u_alu(
         .en(en_alu),
         .op1(op1),
         .op2(op2),
