@@ -2,6 +2,7 @@
 
 module fsm (
     input wire         clk,
+    input wire         rst, // me inicializa todsa las salidas :)
     input wire         operador_suma,
     input wire         operador_resta,
     input wire         operador_clear,
@@ -9,11 +10,10 @@ module fsm (
     input wire         operador_digito,
     input wire[3:0]    digito,
 
-    output reg[1:0]    estado_display = 2'b00,
-    output reg[1:0]    cant_dig_mostrar = 2'b00,
-    output reg[1:0]    opN = 2'b00,  // 01 ingreso op1 - 10 ingreso op2 (para saber en cual guardar el numero) - 00 ninguno (actua como enable!)
-    output reg         operador = 1'b0, // 1 suma - 0 resta
-    output reg         rst_input_regs = 1'b0,
+    output reg[1:0]    estado_display,
+    output reg[1:0]    cant_dig_mostrar,
+    output reg[1:0]    opN,  // 01 ingreso op1 - 10 ingreso op2 (para saber en cual guardar el numero) - 00 ninguno (actua como enable!)
+    output reg         operador, // 1 suma - 0 resta
     output wire        pulso_dato_disp
 );
 
@@ -34,19 +34,23 @@ module fsm (
     reg [2:0] cant_dig = 3'b000; // inicializo
     reg rst_contador_ciclos = 1'b0;
 
-    pulso_5to_ciclo u_pulso_5to_ciclo(.clk(clk), .rst(rst_contador_ciclos), .senal(pulso_dato_disp));
+    pulso_6to_ciclo u_pulso_6to_ciclo(.clk(clk), .rst(rst_contador_ciclos), .senal(pulso_dato_disp));
     /* Contando como "ciclo 1" al ciclo en el que le mando un pulso por rst, me manda un pulso (de un
    ciclo) por senal en el "ciclo 5" */
 
     always @(posedge clk) begin
         estadoActual <= estadoProximo;
-        rst_input_regs <= 1'b0;
         rst_contador_ciclos <= 1'b0;
 
-        //si estoy en la transicion de cualquier estado a ESP_OP1...
-        if (operador_clear) begin
+        if (rst) begin
+            operador <= 1'b0;
+            rst_contador_ciclos <= 1'b0;
             cant_dig <= 3'b0;
-            rst_input_regs <= 1'b1;
+        end
+
+        //si estoy en la transicion de cualquier estado a ESP_OP1...
+        else if (operador_clear) begin
+            cant_dig <= 3'b0;
             rst_contador_ciclos <= 1'b1;
         end
 
@@ -155,19 +159,19 @@ endmodule
 
 
 
-module pulso_5to_ciclo (
+module pulso_6to_ciclo (
   input  wire clk,
   input  wire rst,
   output wire senal
 );
-    reg [2:0] count = 3'd5; // si lo inicializo en cero me manda un pulso fantasma cuando arranca el programa
+    reg [2:0] count = 3'd6; // si lo inicializo en cero me manda un pulso fantasma cuando arranca el programa
 
     always @(posedge clk) begin
         if (rst)    count <= 0;
-        else if (count != 5) count <= count + 1'b1; 
+        else if (count != 6) count <= count + 1'b1; 
         /* llega a 5 (el 6to ciclo) y no a 4 porque si lo dejo en 4, la señal queda prendida en vez de
         mandar un pulso */
     end
 
-    assign senal = (count == 4); // de 0 a 4 hay 5 ciclos
+    assign senal = (count == 5); // de 0 a 4 hay 5 ciclos
 endmodule

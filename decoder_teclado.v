@@ -11,7 +11,7 @@ Entrada: tecla_apretada[15:0], pulsos de 1 ciclo (salida del detector_flanco). B
   fila3:   *     0     #     D
 
 Asignacion de operadores
-  A = suma, B = resta, D = igual, C = clear. 
+  A = suma, B = resta, D = igual, C = clear
 
 Los operadores duran 1 ciclo, en cambio "digito" se retiene hasta el siguiente digito para que 
 la FSM pueda activar op1_en/op2_en un ciclo despues del pulso y el registro de entrada vea bien

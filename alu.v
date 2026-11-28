@@ -15,7 +15,6 @@ está prendido (lo que tenga en la entrada) cuando en=1.
 module alu #(
     parameter NUM_DIGITS = 4
 )(
-    input  wire                    en, // FALTA IMPLEMENTAR!!!!!!!!!!!!!!!!!!
     input  wire [NUM_DIGITS*4-1:0] op1,
     input  wire [NUM_DIGITS*4-1:0] op2,
     input  wire                    op_sel,

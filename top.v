@@ -23,6 +23,10 @@ module top (
     //variables globales; el clock de 48MHz y el rst
     wire HFOSC;
 
+    ////////////////////////////////////////////////////////////////////
+    //LOGICA DE RST
+     wire HFOSC;
+
     //Logica del rst para comenzar el sistema (lo hice con initial y eso esta mal, funca en pocas fpgas)
 
     //Lo primero es sincronizar la entrada del rst para evitar la metaestabilidad (lo que vimos de siempre)
@@ -31,7 +35,7 @@ module top (
         btn_sync <= {btn_sync[0], boton_rst};
     wire btn_rst = btn_sync[1];
 
-    //Luego esta la logica del contador de ciclos del clk, la idea es dejarlo 8 ciclos de clk el reset activo
+     //Luego esta la logica del contador de ciclos del clk, la idea es dejarlo 8 ciclos de clk el reset activo
     //desde que se lo presiono.
     reg [3:0] rst_cnt;
     reg       rst;
@@ -48,10 +52,13 @@ module top (
             rst     <= 1'b0;
         end
     end
+    
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    // CLOCK Y TICKS
     //instancio al oscilador interno, no es un clock, me toca craftearlo
     SB_HFOSC #(
-        .CLKHF_DIV("0b00")   // 0b00 = 48MHz, 0b01 = 24MHz, 0b10 = 12MHz, 0b11 = 6MHz
+        .CLKHF_DIV("0b01")   // 0b00 = 48MHz, 0b01 = 24MHz, 0b10 = 12MHz, 0b11 = 6MHz
     ) u_SB_HFOSC (
         .CLKHFPU (1'b1),    //es el prendido del oscilador
         .CLKHFEN (1'b1),    //es el enable
@@ -76,6 +83,10 @@ module top (
         .tick_barrido        (tick_barrido),
         .tick_anti_rebote    (tick_anti_rebote)
     );
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    // TOMA DE DATOS DEL TECLADO
+    
 
     //Teclado 4x4
     wire [3:0]  ring_counter;       // columnas: ring_counter[0] = gpio_48 ... ring_counter[3] = gpio_44
@@ -153,14 +164,15 @@ module top (
 
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //FSM, ALU y registros de entrada
+    //FSM, ALU Y REGISTROS DE ENTRADA
 
     wire[1:0] estado_display, opN, cant_dig_mostrar;
     wire[15:0] op1, op2, result;
-    wire operador, en_alu, pulso_dato_disp, rst_input_regs;
+    wire operador, pulso_dato_disp, clear_input_regs;
 
     fsm u_fsm (
         .clk(HFOSC),
+        .rst(rst),
         .operador_suma(operador_suma),
         .operador_resta(operador_resta),
         .operador_clear(operador_clear),
@@ -172,13 +184,13 @@ module top (
         .cant_dig_mostrar(cant_dig_mostrar),
         .opN(opN),
         .operador(operador),
-        .rst_input_regs(rst_input_regs),
         .pulso_dato_disp(pulso_dato_disp)
     );
     
     registrosEntrada u_registrosEntrada (
         .clk(HFOSC),
-        .rst_input_regs(rst_input_regs),
+        .rst(rst),
+        .operador_clear(operador_clear),
         .operador_digito(operador_digito),
         .digito(digito),
         .opN(opN),
@@ -188,7 +200,6 @@ module top (
     );
 
     alu u_alu(
-        .en(en_alu),
         .op1(op1),
         .op2(op2),
         .op_sel(operador),
@@ -200,6 +211,7 @@ module top (
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //DISPLAY
+
     wire[15:0] disp_word;
     wire DataIn_disp, DataEn_disp, DataClk_disp;
 
@@ -216,7 +228,7 @@ module top (
 
     transmisor_serie u_transmisor_serie (
         .clk(HFOSC),
-        .reset(),
+        .reset(rst),
         .disp_word(disp_word), //controlado por el mux del display
         .input_en(pulso_dato_disp), // el pulso que mando para mandarle un dato nuevo al display
         
@@ -233,7 +245,7 @@ module top (
 
 
     /*
-    cables que van a la placa (gpios): MODFIICAR
+    cables que van a la placa (gpios):
     - DataClk_disp --> clk datos display
     - DataEn_disp --> en
     - DataIn_disp --> datos
